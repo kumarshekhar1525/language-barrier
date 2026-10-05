@@ -100,7 +100,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const handleCopyRlsSql = () => {
-    navigator.clipboard.writeText('ALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;');
+    navigator.clipboard.writeText(
+      'GRANT ALL ON TABLE public.patient_profiles TO anon, authenticated, service_role;\nALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;'
+    );
     setCopiedRlsSql(true);
     setTimeout(() => setCopiedRlsSql(false), 2500);
   };

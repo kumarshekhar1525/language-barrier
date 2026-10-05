@@ -124,14 +124,15 @@ CREATE TABLE IF NOT EXISTS public.triage_records (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable Row Level Security (RLS) & allow anonymous inserts
-ALTER TABLE public.translation_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.patient_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.triage_records ENABLE ROW LEVEL SECURITY;
+-- Grant full privileges to anon and authenticated roles
+GRANT ALL ON TABLE public.patient_profiles TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.translation_logs TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.triage_records TO anon, authenticated, service_role;
 
-CREATE POLICY "Allow public read/insert for translation_logs" ON public.translation_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/insert for patient_profiles" ON public.patient_profiles FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/insert for triage_records" ON public.triage_records FOR ALL USING (true) WITH CHECK (true);
+-- Disable Row Level Security (RLS) restrictions for seamless API access
+ALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.translation_logs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.triage_records DISABLE ROW LEVEL SECURITY;
 `;
 
 /**
