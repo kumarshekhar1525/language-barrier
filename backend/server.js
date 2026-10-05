@@ -169,7 +169,11 @@ app.get('/api/history', async (req, res) => {
   res.json({ success: true, logs: [], message: 'Supabase client not connected' });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 Hear2Heal Backend API Server running on http://localhost:${PORT}`);
-});
+// Start Server (only if not imported by Vercel serverless environment)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Hear2Heal Backend API Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
