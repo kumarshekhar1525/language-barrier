@@ -19,15 +19,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 }) => {
   const [formData, setFormData] = useState<PatientProfile>(profile);
   const [isSaved, setIsSaved] = useState(false);
+  const [supabaseSynced, setSupabaseSynced] = useState<boolean | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     onSaveProfile(formData);
-    syncProfileToSupabase(formData);
+    const synced = await syncProfileToSupabase(formData);
+    setSupabaseSynced(synced);
     setIsSaved(true);
     setTimeout(() => {
       setIsSaved(false);
-    }, 2500);
+    }, 3500);
   };
 
   return (
@@ -143,9 +145,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </form>
 
         {isSaved && (
-          <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-800 text-xs font-semibold animate-fade-in">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>Profile successfully encrypted & saved offline!</span>
+          <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-900 text-xs font-semibold animate-fade-in">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                Patient Profile Saved!{' '}
+                {supabaseSynced
+                  ? '⚡ Live Synced to Supabase (patient_profiles table)'
+                  : '💾 Saved locally'}
+              </span>
+            </div>
           </div>
         )}
       </div>
