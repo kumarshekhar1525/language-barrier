@@ -149,7 +149,26 @@ app.post('/api/profile', async (req, res) => {
   res.json({ success: true, syncedToSupabase: false, data: profile });
 });
 
-// 6. Fetch Translation History API
+// 6. Fetch Patient Profiles API
+app.get('/api/profiles', async (req, res) => {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('patient_profiles')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.json({ success: true, profiles: data });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  res.json({ success: true, profiles: [], message: 'Supabase client not connected' });
+});
+
+// 7. Fetch Translation History API
 app.get('/api/history', async (req, res) => {
   if (supabase) {
     try {
