@@ -173,11 +173,13 @@ export async function syncTranslationToSupabase(
 /**
  * Save Patient Profile to Supabase
  */
-export async function syncProfileToSupabase(profile: PatientProfile): Promise<boolean> {
+export async function syncProfileToSupabase(profile: PatientProfile): Promise<{ success: boolean; message: string }> {
   const client = getSupabaseClient();
   if (!client) {
-    console.warn('Supabase client not connected.');
-    return false;
+    return {
+      success: false,
+      message: 'Supabase API key is missing. Click the green "Supabase DB" button at the top bar to paste your API Key.'
+    };
   }
 
   try {
@@ -206,7 +208,7 @@ export async function syncProfileToSupabase(profile: PatientProfile): Promise<bo
     // Try insert with payload
     let { error } = await client.from('patient_profiles').insert([payload]);
 
-    if (error && error.message.includes('user_id')) {
+    if (error && (error.message.includes('user_id') || error.code === '42703')) {
       // If user_id column doesn't match or fails, try without user_id
       delete payload.user_id;
       const retry = await client.from('patient_profiles').insert([payload]);
@@ -215,14 +217,23 @@ export async function syncProfileToSupabase(profile: PatientProfile): Promise<bo
 
     if (error) {
       console.error('❌ Supabase patient_profiles Insert Error:', error.message);
-      return false;
+      return {
+        success: false,
+        message: `Supabase Error: ${error.message} (Run "ALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;" in Supabase SQL Editor)`
+      };
     }
 
     console.log('✅ Patient Profile inserted successfully into Supabase!');
-    return true;
+    return {
+      success: true,
+      message: '⚡ Live Synced to Supabase database (patient_profiles table)!'
+    };
   } catch (e: any) {
     console.error('❌ Supabase profile request exception:', e?.message || e);
-    return false;
+    return {
+      success: false,
+      message: `Supabase Request Failed: ${e?.message || 'Network error'}`
+    };
   }
 }
 

@@ -19,11 +19,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 }) => {
   const [formData, setFormData] = useState<PatientProfile>(profile);
   const [isSaved, setIsSaved] = useState(false);
-  const [supabaseSynced, setSupabaseSynced] = useState<boolean | null>(null);
+  const [supabaseResult, setSupabaseResult] = useState<{ success: boolean; message: string } | null>(null);
   const [supabaseRecords, setSupabaseRecords] = useState<any[]>([]);
 
   // Load existing records from Supabase on mount
-  React.useEffect(() => {
+  useEffect(() => {
     fetchPatientProfilesFromSupabase().then((data) => {
       if (data && data.length > 0) {
         setSupabaseRecords(data);
@@ -34,8 +34,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     onSaveProfile(formData);
-    const synced = await syncProfileToSupabase(formData);
-    setSupabaseSynced(synced);
+    const res = await syncProfileToSupabase(formData);
+    setSupabaseResult(res);
     setIsSaved(true);
 
     // Refresh records list from Supabase
@@ -45,7 +45,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
     setTimeout(() => {
       setIsSaved(false);
-    }, 3500);
+    }, 4500);
   };
 
   return (
@@ -160,16 +160,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </form>
 
-        {isSaved && (
-          <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-900 text-xs font-semibold animate-fade-in">
+        {isSaved && supabaseResult && (
+          <div
+            className={`mt-4 p-3 rounded-xl border flex items-center justify-between text-xs font-semibold animate-fade-in ${
+              supabaseResult.success
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-amber-50 border-amber-200 text-amber-900'
+            }`}
+          >
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
-                Patient Profile Saved!{' '}
-                {supabaseSynced
-                  ? '⚡ Live Synced to Supabase (patient_profiles table)'
-                  : '💾 Saved locally'}
-              </span>
+              <span>{supabaseResult.message}</span>
             </div>
           </div>
         )}
