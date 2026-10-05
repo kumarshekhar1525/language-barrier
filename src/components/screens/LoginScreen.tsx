@@ -29,11 +29,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [supabaseStatus, setSupabaseStatus] = useState<string>(
     isSupabaseConfigured() ? 'Supabase connected and ready.' : 'Supabase not connected yet.'
   );
+  const [authError, setAuthError] = useState<string>('');
 
   const trySupabaseLogin = async (loginEmail: string, loginPassword: string) => {
     const client = getSupabaseClient();
     if (!client) {
-      return false;
+      return undefined;
     }
 
     const { error } = await client.auth.signInWithPassword({
@@ -44,27 +45,43 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     if (error) {
       console.error('Supabase auth failed:', error.message);
       setSupabaseStatus(error.message);
+      setAuthError(error.message);
       return false;
     }
 
+    setAuthError('');
     setSupabaseStatus('Supabase login successful.');
     return true;
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setAuthError('');
     setIsLoading(true);
 
     try {
-      if (await trySupabaseLogin(email, password)) {
+      const supabaseLogin = await trySupabaseLogin(email, password);
+      if (supabaseLogin === true) {
+        setIsLoading(false);
         onLoginSuccess({
           name: email.split('@')[0] || 'User',
           email: email || 'demo@hear2heal.com',
         });
         return;
       }
+      if (supabaseLogin === false) {
+        setIsLoading(false);
+        return;
+      }
     } catch (error) {
       console.error('Supabase login failed:', error);
+      if (isSupabaseConfigured()) {
+        const message = 'Supabase login failed. Check the connection and try again.';
+        setSupabaseStatus(message);
+        setAuthError(message);
+        setIsLoading(false);
+        return;
+      }
     }
 
     setTimeout(() => {
@@ -79,18 +96,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const handleQuickDemoLogin = async () => {
     setEmail('demo@hear2heal.com');
     setPassword('password123');
+    setAuthError('');
     setIsLoading(true);
 
     try {
-      if (await trySupabaseLogin('demo@hear2heal.com', 'password123')) {
+      const supabaseLogin = await trySupabaseLogin('demo@hear2heal.com', 'password123');
+      if (supabaseLogin === true) {
+        setIsLoading(false);
         onLoginSuccess({
           name: 'Demo User',
           email: 'demo@hear2heal.com',
         });
         return;
       }
+      if (supabaseLogin === false) {
+        setIsLoading(false);
+        return;
+      }
     } catch (error) {
       console.error('Supabase quick demo login failed:', error);
+      if (isSupabaseConfigured()) {
+        const message = 'Supabase login failed. Check the connection and try again.';
+        setSupabaseStatus(message);
+        setAuthError(message);
+        setIsLoading(false);
+        return;
+      }
     }
 
     setTimeout(() => {
@@ -225,6 +256,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 </>
               )}
             </button>
+            {authError && (
+              <p role="alert" className="text-xs font-medium text-red-600">
+                {authError}
+              </p>
+            )}
           </form>
 
           <div className="mt-5 pt-4 border-t border-slate-200/80 text-center">
