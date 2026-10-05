@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldCheck, Zap } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldCheck, Zap, Database, ExternalLink } from 'lucide-react';
+import {
+  getSupabaseConfig,
+  isSupabaseConfigured,
+  saveSupabaseConfig,
+  testSupabaseConnection,
+  getSupabaseClient,
+} from '../../utils/supabase';
 
 export interface AppUser {
   name: string;
@@ -17,23 +23,40 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showSupabaseConfig, setShowSupabaseConfig] = useState<boolean>(false);
+  const [supabaseUrlInput, setSupabaseUrlInput] = useState<string>(getSupabaseConfig().url);
+  const [supabaseAnonKeyInput, setSupabaseAnonKeyInput] = useState<string>(getSupabaseConfig().anonKey);
+  const [supabaseStatus, setSupabaseStatus] = useState<string>(
+    isSupabaseConfigured() ? 'Supabase connected and ready.' : 'Supabase not connected yet.'
+  );
+
+  const trySupabaseLogin = async (loginEmail: string, loginPassword: string) => {
+    const client = getSupabaseClient();
+    if (!client) {
+      return false;
+    }
+
+    const { error } = await client.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+
+    if (error) {
+      console.error('Supabase auth failed:', error.message);
+      setSupabaseStatus(error.message);
+      return false;
+    }
+
+    setSupabaseStatus('Supabase login successful.');
+    return true;
+  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (isSupabaseConfigured) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        setIsLoading(false);
+      if (await trySupabaseLogin(email, password)) {
         onLoginSuccess({
           name: email.split('@')[0] || 'User',
           email: email || 'demo@hear2heal.com',
@@ -59,17 +82,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      if (isSupabaseConfigured) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: 'demo@hear2heal.com',
-          password: 'password123',
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        setIsLoading(false);
+      if (await trySupabaseLogin('demo@hear2heal.com', 'password123')) {
         onLoginSuccess({
           name: 'Demo User',
           email: 'demo@hear2heal.com',
@@ -87,6 +100,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         email: 'demo@hear2heal.com'
       });
     }, 300);
+  };
+
+  const handleConnectSupabase = async () => {
+    const url = supabaseUrlInput.trim();
+    const key = supabaseAnonKeyInput.trim();
+
+    if (!url || !key) {
+      setSupabaseStatus('Please add your Supabase URL and anon key.');
+      return;
+    }
+
+    saveSupabaseConfig(url, key);
+    setSupabaseUrlInput(url);
+    setSupabaseAnonKeyInput(key);
+
+    const result = await testSupabaseConnection(url, key);
+    setSupabaseStatus(result.message);
   };
 
   return (
@@ -206,6 +236,60 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               <span>1-Click Quick Demo Sign In →</span>
             </button>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => setShowSupabaseConfig((prev) => !prev)}
+              className="w-full flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-left text-xs font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100 cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Database className="w-3.5 h-3.5 text-blue-600" />
+                Supabase Direct Connect
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.15em] text-slate-500">
+                {showSupabaseConfig ? 'Hide' : 'Add Key'}
+              </span>
+            </button>
+
+            {showSupabaseConfig && (
+              <div className="mt-3 space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                <input
+                  type="url"
+                  value={supabaseUrlInput}
+                  onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                  placeholder="https://your-project.supabase.co"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                />
+                <input
+                  type="password"
+                  value={supabaseAnonKeyInput}
+                  onChange={(e) => setSupabaseAnonKeyInput(e.target.value)}
+                  placeholder="Paste anon API key"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
+                />
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={handleConnectSupabase}
+                    className="flex-1 rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-bold text-white hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    Connect Now
+                  </button>
+                  <a
+                    href="https://supabase.com/dashboard/projects/new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[10px] font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                  >
+                    Open Supabase
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <p className="text-[10px] text-slate-600">{supabaseStatus}</p>
+              </div>
+            )}
           </div>
         </div>
 

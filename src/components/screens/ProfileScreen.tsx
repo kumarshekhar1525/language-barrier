@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, User, ShieldCheck, Check, Heart, Save } from 'lucide-react';
 import { ScreenId, PatientProfile } from '../../types';
 import { INITIAL_PATIENT_PROFILE } from '../../data/mockData';
+import { syncProfileToSupabase } from '../../utils/supabase';
 
 interface ProfileScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -22,6 +23,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveProfile(formData);
+    syncProfileToSupabase(formData);
     setIsSaved(true);
     setTimeout(() => {
       setIsSaved(false);

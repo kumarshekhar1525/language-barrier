@@ -26,6 +26,7 @@ import {
   EmergencyPreset
 } from '../../utils/aiTranslator';
 import { LANGUAGES } from '../../data/mockData';
+import { syncTranslationToSupabase } from '../../utils/supabase';
 
 interface PatientTranslationScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -75,6 +76,18 @@ export const PatientTranslationScreen: React.FC<PatientTranslationScreenProps> =
       if (result.detectedLanguage.id !== patientLang.id) {
         onSelectPatientLang(result.detectedLanguage);
       }
+    }
+
+    // Cloud sync to Supabase (if connected)
+    if (inputText.trim()) {
+      syncTranslationToSupabase(
+        'patient',
+        result.detectedLanguage.name,
+        doctorOutputLangId === 'hi' ? 'Hindi' : 'English',
+        inputText,
+        result.doctorTranslation,
+        result.triageLevel
+      );
     }
   }, [inputText, doctorOutputLangId, isAutoDetectMode]);
 
