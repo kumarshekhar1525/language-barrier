@@ -286,19 +286,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <div className="flex-1 leading-relaxed">
                 <span>{supabaseResult.message}</span>
 
-                {/* If RLS error is reported, show quick 1-click copy button */}
+                {/* If RLS error is reported, show quick 1-click copy button and direct link */}
                 {supabaseResult.message.includes('DISABLE ROW LEVEL SECURITY') && (
-                  <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
-                    <span className="text-[11px] text-amber-800">
-                      Copy SQL command to run in Supabase SQL Editor:
+                  <div className="mt-2 pt-2 border-t border-amber-200 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] text-amber-900 font-bold">
+                      Run this in Supabase SQL Editor to allow saving:
                     </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyRlsSql}
-                      className="px-2.5 py-1 bg-amber-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 hover:bg-amber-700 transition-colors cursor-pointer shrink-0"
-                    >
-                      {copiedRlsSql ? 'Copied!' : 'Copy RLS Fix SQL'}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href="https://supabase.com/dashboard/project/ztalwfvpxcfnjdxxszxg/sql/new"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                      >
+                        <span>Open SQL Editor</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={handleCopyRlsSql}
+                        className="px-2.5 py-1 bg-amber-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 hover:bg-amber-700 transition-colors cursor-pointer shrink-0"
+                      >
+                        {copiedRlsSql ? 'Copied!' : 'Copy RLS Fix SQL'}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
