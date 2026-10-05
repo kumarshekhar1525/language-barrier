@@ -1,20 +1,48 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Hear2Heal - Medical Translation & Triage System
 
-# Run and deploy your AI Studio app
+Structured Full-Stack Architecture (`frontend/` & `backend/`) with Supabase Database Cloud Integration.
 
-This contains everything you need to run your app locally.
+## 📁 Repository Structure
 
-View your app in AI Studio: https://ai.studio/apps/6007e8c5-9aba-4ef3-aea8-ebad0be55bc5
+```
+├── frontend/               # React 19 + TypeScript + Vite + Tailwind CSS v4
+│   ├── src/                # UI Screens, Components & Supabase Client
+│   ├── index.html          # Main HTML entry point
+│   ├── vite.config.ts      # Vite configuration
+│   ├── package.json        # Frontend dependencies
+│   └── .env                # Frontend environment variables
+│
+├── backend/                # Node.js + Express + Supabase API Server
+│   ├── server.js           # REST API endpoints (/api/translate, /api/triage, /api/profile)
+│   ├── package.json        # Backend dependencies
+│   └── .env                # Backend environment variables
+│
+└── README.md
+```
 
-## Run Locally
+## 🚀 Quick Run Guide
 
-**Prerequisites:**  Node.js
+### 1. Run Frontend
+```bash
+cd frontend
+npm run dev
+# or from root workspace:
+npm run dev:frontend
+```
 
+### 2. Run Backend Server
+```bash
+cd backend
+npm run dev
+# or from root workspace:
+npm run dev:backend
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 3. Build Production Bundle
+```bash
+npm run build:frontend
+```
+
+## ⚡ Supabase Setup
+- Direct Link to Supabase: [https://supabase.com/dashboard](https://supabase.com/dashboard)
+- SQL Editor: [https://supabase.com/dashboard/project/_/sql](https://supabase.com/dashboard/project/_/sql)
