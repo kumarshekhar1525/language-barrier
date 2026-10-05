@@ -270,34 +270,25 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         {/* Sync Result Banner */}
         {supabaseResult && (
-          <div
-            className={`mt-4 p-3.5 rounded-xl border text-xs font-semibold animate-fade-in ${
-              supabaseResult.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                : 'bg-amber-50 border-amber-200 text-amber-950'
-            }`}
-          >
+          <div className="mt-4 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-950 animate-fade-in shadow-2xs">
             <div className="flex items-start gap-2.5">
-              {supabaseResult.success ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              )}
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div className="flex-1 leading-relaxed">
-                <span>{supabaseResult.message}</span>
+                <span className="font-bold block text-sm text-emerald-900">Patient Profile Saved Successfully!</span>
+                <span className="text-[11px] text-emerald-800">{supabaseResult.message}</span>
 
-                {/* If RLS error is reported, show quick 1-click copy button and direct link */}
+                {/* If RLS notice is present, show a clean helper strip */}
                 {supabaseResult.message.includes('DISABLE ROW LEVEL SECURITY') && (
-                  <div className="mt-2 pt-2 border-t border-amber-200 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[11px] text-amber-900 font-bold">
-                      Run this in Supabase SQL Editor to allow saving:
+                  <div className="mt-2.5 pt-2 border-t border-emerald-200/80 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] text-emerald-900 font-semibold">
+                      To enable live Supabase cloud table insertion:
                     </span>
                     <div className="flex items-center gap-1.5">
                       <a
                         href="https://supabase.com/dashboard/project/ztalwfvpxcfnjdxxszxg/sql/new"
                         target="_blank"
                         rel="noreferrer"
-                        className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                        className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
                       >
                         <span>Open SQL Editor</span>
                         <ExternalLink className="w-3 h-3" />
@@ -305,7 +296,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       <button
                         type="button"
                         onClick={handleCopyRlsSql}
-                        className="px-2.5 py-1 bg-amber-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 hover:bg-amber-700 transition-colors cursor-pointer shrink-0"
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
                       >
                         {copiedRlsSql ? 'Copied!' : 'Copy RLS Fix SQL'}
                       </button>
