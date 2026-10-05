@@ -210,24 +210,37 @@ export async function syncProfileToSupabase(profile: PatientProfile): Promise<{ 
     // Try insert with payload
     let { error } = await client.from('patient_profiles').insert([payload]);
 
-    if (error && (error.message.includes('user_id') || error.code === '42703')) {
-      // If user_id column doesn't match or fails, try without user_id
+    if (error && (error.code === '23502' || error.code === '23503' || error.message.includes('user_id'))) {
+      // If user_id NOT NULL or Foreign Key constraint failed, attempt without user_id
       delete payload.user_id;
       const retry = await client.from('patient_profiles').insert([payload]);
-      error = retry.error;
+      if (!retry.error) {
+        error = null;
+      } else {
+        error = retry.error;
+      }
     }
 
     if (error) {
-      console.warn('⚠️ Supabase patient_profiles Insert Notice:', error.message);
-      if (error.message.includes('permission denied') || error.message.includes('ROW LEVEL SECURITY') || error.code === '42501') {
+      console.warn('⚠️ Supabase patient_profiles Insert Error:', error.message, error.code);
+      
+      if (error.code === '23502' || error.code === '23503' || error.message.includes('user_id')) {
         return {
-          success: true,
-          message: '✅ Patient Profile saved on device! (Cloud sync pending RLS permission - run ALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY; in Supabase SQL Editor)'
+          success: false,
+          message: 'Supabase Error: Column "user_id" has NOT NULL or Foreign Key constraint. Run "ALTER TABLE public.patient_profiles ALTER COLUMN user_id DROP NOT NULL; ALTER TABLE public.patient_profiles DROP CONSTRAINT IF EXISTS patient_profiles_user_id_fkey;" in Supabase SQL Editor.'
         };
       }
+
+      if (error.message.includes('permission denied') || error.message.includes('ROW LEVEL SECURITY') || error.code === '42501') {
+        return {
+          success: false,
+          message: 'Supabase Error: Permission denied (Run "GRANT ALL ON TABLE public.patient_profiles TO anon, authenticated, service_role; ALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;" in Supabase SQL Editor)'
+        };
+      }
+
       return {
-        success: true,
-        message: `✅ Saved locally on device! (Cloud Sync Notice: ${error.message})`
+        success: false,
+        message: `Supabase Insert Error: ${error.message}`
       };
     }
 
@@ -239,8 +252,8 @@ export async function syncProfileToSupabase(profile: PatientProfile): Promise<{ 
   } catch (e: any) {
     console.warn('⚠️ Supabase profile request exception:', e?.message || e);
     return {
-      success: true,
-      message: `✅ Saved locally on device! (Offline mode active)`
+      success: false,
+      message: `Supabase Request Failed: ${e?.message || 'Network error'}`
     };
   }
 }

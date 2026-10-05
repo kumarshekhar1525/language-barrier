@@ -101,7 +101,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleCopyRlsSql = () => {
     navigator.clipboard.writeText(
-      'GRANT ALL ON TABLE public.patient_profiles TO anon, authenticated, service_role;\nALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;'
+      `-- Fix Supabase patient_profiles table constraints & permissions\nALTER TABLE public.patient_profiles ALTER COLUMN user_id DROP NOT NULL;\nALTER TABLE public.patient_profiles DROP CONSTRAINT IF EXISTS patient_profiles_user_id_fkey;\nGRANT ALL ON TABLE public.patient_profiles TO anon, authenticated, service_role;\nALTER TABLE public.patient_profiles DISABLE ROW LEVEL SECURITY;`
     );
     setCopiedRlsSql(true);
     setTimeout(() => setCopiedRlsSql(false), 2500);
@@ -272,25 +272,37 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         {/* Sync Result Banner */}
         {supabaseResult && (
-          <div className="mt-4 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-950 animate-fade-in shadow-2xs">
+          <div
+            className={`mt-4 p-3.5 rounded-2xl border text-xs font-semibold animate-fade-in shadow-2xs ${
+              supabaseResult.success
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+                : 'bg-amber-50 border-amber-200 text-amber-950'
+            }`}
+          >
             <div className="flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              {supabaseResult.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              )}
               <div className="flex-1 leading-relaxed">
-                <span className="font-bold block text-sm text-emerald-900">Patient Profile Saved Successfully!</span>
-                <span className="text-[11px] text-emerald-800">{supabaseResult.message}</span>
+                <span className="font-bold block text-sm">
+                  {supabaseResult.success ? '⚡ Live Synced to Supabase!' : '⚠️ Supabase Table Fix Required'}
+                </span>
+                <span className="text-[11px]">{supabaseResult.message}</span>
 
-                {/* If RLS notice is present, show a clean helper strip */}
-                {supabaseResult.message.includes('DISABLE ROW LEVEL SECURITY') && (
-                  <div className="mt-2.5 pt-2 border-t border-emerald-200/80 flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[11px] text-emerald-900 font-semibold">
-                      To enable live Supabase cloud table insertion:
+                {/* If Table Constraint / RLS error occurs, show quick 1-click Fix buttons */}
+                {(!supabaseResult.success || supabaseResult.message.includes('user_id') || supabaseResult.message.includes('ROW LEVEL SECURITY') || supabaseResult.message.includes('permission denied')) && (
+                  <div className="mt-2.5 pt-2 border-t border-amber-300/80 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-amber-900">
+                      Copy 1-Click Fix SQL & Paste in Supabase SQL Editor:
                     </span>
                     <div className="flex items-center gap-1.5">
                       <a
                         href="https://supabase.com/dashboard/project/ztalwfvpxcfnjdxxszxg/sql/new"
                         target="_blank"
                         rel="noreferrer"
-                        className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                        className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
                       >
                         <span>Open SQL Editor</span>
                         <ExternalLink className="w-3 h-3" />
@@ -298,9 +310,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                       <button
                         type="button"
                         onClick={handleCopyRlsSql}
-                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-2xs"
                       >
-                        {copiedRlsSql ? 'Copied!' : 'Copy RLS Fix SQL'}
+                        {copiedRlsSql ? 'Copied!' : 'Copy Table Fix SQL'}
                       </button>
                     </div>
                   </div>
