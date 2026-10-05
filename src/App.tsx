@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  LogOut
+  LogOut,
+  Database
 } from 'lucide-react';
 import { ScreenId, Language, PainSeverity, PatientProfile } from './types';
 import { LANGUAGES, INITIAL_PATIENT_PROFILE } from './data/mockData';
@@ -31,6 +32,7 @@ import { MobileFrame } from './components/MobileFrame';
 import { ScreenSwitcherDrawer } from './components/ScreenSwitcherDrawer';
 import { SidebarDashboard } from './components/SidebarDashboard';
 import { AllScreensGallery } from './components/AllScreensGallery';
+import { SupabaseConnectModal } from './components/SupabaseConnectModal';
 import { LoginScreen, AppUser } from './components/screens/LoginScreen';
 import { SplashScreen } from './components/screens/SplashScreen';
 import { LanguageSelectScreen } from './components/screens/LanguageSelectScreen';
@@ -52,6 +54,7 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('splash');
   const [viewMode, setViewMode] = useState<'device' | 'gallery'>('device');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // Left Dashboard Sidebar ON / OFF state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -289,7 +292,17 @@ export default function App() {
               <span className="hidden md:inline">Languages</span>
             </button>
 
-            {/* 4. Quick Emergency SOS Button */}
+            {/* 4. Supabase Cloud DB Connector */}
+            <button
+              onClick={() => setIsSupabaseModalOpen(true)}
+              className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+              title="Connect & Attach Supabase Database"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">Supabase DB</span>
+            </button>
+
+            {/* 5. Quick Emergency SOS Button */}
             <button
               onClick={() => setCurrentScreen('emergency')}
               className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 active:scale-95 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[0_16px_30px_-14px_rgba(239,68,68,0.8)] transition-all cursor-pointer"
@@ -492,6 +505,12 @@ export default function App() {
           setCurrentScreen(screenId);
           setViewMode('device');
         }}
+      />
+
+      {/* Modal for connecting directly to Supabase Database */}
+      <SupabaseConnectModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
       />
     </div>
   );
