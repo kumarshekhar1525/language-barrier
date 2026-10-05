@@ -9,8 +9,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Supabase configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://your-supabase-project-id.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ztalwfvpxcfnjdxxszxg.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0YWx3ZnZweGNmbmpkeHhzenhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg0NDQsImV4cCI6MjEwNjc4NDQ0NH0.D-Rj2CT4M27DYBWhe9RXtSVJakZ3gFXFOfny43wcWhs';
+
 
 let supabase = null;
 if (SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes('your-supabase-project-id')) {

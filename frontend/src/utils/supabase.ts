@@ -12,8 +12,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ChatMessage, PatientProfile } from '../types';
 
 // Default Supabase project direct URL & Anon Key from env
-const ENV_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project-id.supabase.co';
-const ENV_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const ENV_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ztalwfvpxcfnjdxxszxg.supabase.co';
+const ENV_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0YWx3ZnZweGNmbmpkeHhzenhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDg0NDQsImV4cCI6MjEwNjc4NDQ0NH0.D-Rj2CT4M27DYBWhe9RXtSVJakZ3gFXFOfny43wcWhs';
+
 
 // Local storage key overrides if user connects directly via UI
 const STORAGE_URL_KEY = 'h2h_supabase_url';
