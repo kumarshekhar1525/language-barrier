@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, ShieldCheck, Check, Heart, Save } from 'lucide-react';
 import { ScreenId, PatientProfile } from '../../types';
 import { INITIAL_PATIENT_PROFILE } from '../../data/mockData';
-import { syncProfileToSupabase } from '../../utils/supabase';
+import { syncProfileToSupabase, fetchPatientProfilesFromSupabase } from '../../utils/supabase';
 
 interface ProfileScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -20,6 +20,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [formData, setFormData] = useState<PatientProfile>(profile);
   const [isSaved, setIsSaved] = useState(false);
   const [supabaseSynced, setSupabaseSynced] = useState<boolean | null>(null);
+  const [supabaseRecords, setSupabaseRecords] = useState<any[]>([]);
+
+  // Load existing records from Supabase on mount
+  React.useEffect(() => {
+    fetchPatientProfilesFromSupabase().then((data) => {
+      if (data && data.length > 0) {
+        setSupabaseRecords(data);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +37,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     const synced = await syncProfileToSupabase(formData);
     setSupabaseSynced(synced);
     setIsSaved(true);
+
+    // Refresh records list from Supabase
+    fetchPatientProfilesFromSupabase().then((data) => {
+      setSupabaseRecords(data);
+    });
+
     setTimeout(() => {
       setIsSaved(false);
     }, 3500);
@@ -154,6 +170,34 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   ? '⚡ Live Synced to Supabase (patient_profiles table)'
                   : '💾 Saved locally'}
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Live Supabase Database Patient Records */}
+        {supabaseRecords.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Supabase Live Patients Database ({supabaseRecords.length})</span>
+              </h4>
+            </div>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {supabaseRecords.map((rec, i) => (
+                <div key={rec.id || i} className="p-3 bg-white border border-slate-200 rounded-xl text-xs flex items-center justify-between shadow-2xs">
+                  <div>
+                    <span className="font-bold text-slate-900 block">{rec.patient_name || rec.name}</span>
+                    <span className="text-[11px] text-slate-500">
+                      Age: {rec.age || 'N/A'} · Blood: {rec.blood_group || 'N/A'} · Allergies: {rec.allergies || 'None'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">
+                    Synced
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}

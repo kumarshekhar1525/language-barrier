@@ -55,7 +55,9 @@ export function isSupabaseConfigured(): boolean {
   );
 }
 
-// Lazy Supabase client instance
+// Lazy Supabase client instance with credential tracking
+let lastUrl = '';
+let lastKey = '';
 let supabaseInstance: SupabaseClient | null = null;
 
 export function getSupabaseClient(): SupabaseClient | null {
@@ -65,8 +67,10 @@ export function getSupabaseClient(): SupabaseClient | null {
     return null;
   }
 
-  if (!supabaseInstance) {
+  if (!supabaseInstance || lastUrl !== url || lastKey !== anonKey) {
     try {
+      lastUrl = url;
+      lastKey = anonKey;
       supabaseInstance = createClient(url, anonKey, {
         auth: { persistSession: true }
       });
@@ -245,5 +249,29 @@ export async function testSupabaseConnection(url: string, key: string): Promise<
     };
   } catch (err: any) {
     return { success: false, message: err.message || 'Connection failed. Please check URL and API Key.' };
+  }
+}
+
+/**
+ * Fetch All Saved Patient Profiles from Supabase
+ */
+export async function fetchPatientProfilesFromSupabase(): Promise<any[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('patient_profiles')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.warn('Error fetching patient_profiles:', error.message);
+      return [];
+    }
+    return data || [];
+  } catch (e) {
+    console.warn('Failed to fetch patient_profiles:', e);
+    return [];
   }
 }
