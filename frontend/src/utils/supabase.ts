@@ -171,27 +171,53 @@ export async function syncTranslationToSupabase(
  */
 export async function syncProfileToSupabase(profile: PatientProfile): Promise<boolean> {
   const client = getSupabaseClient();
-  if (!client) return false;
+  if (!client) {
+    console.warn('Supabase client not connected.');
+    return false;
+  }
 
   try {
-    const { error } = await client.from('patient_profiles').insert([
-      {
-        patient_name: profile.name,
-        age: profile.age,
-        blood_group: profile.bloodGroup,
-        allergies: profile.allergies,
-        current_medicines: profile.currentMedicines,
-        emergency_contact: profile.emergencyContact
-      }
-    ]);
+    // Check if user is signed in to attach user_id if column exists
+    let userId: string | null = null;
+    try {
+      const { data } = await client.auth.getUser();
+      userId = data.user?.id || null;
+    } catch (authErr) {
+      // ignore auth fetch error
+    }
+
+    const payload: any = {
+      patient_name: profile.name || 'Anonymous Patient',
+      age: profile.age || '',
+      blood_group: profile.bloodGroup || '',
+      allergies: profile.allergies || '',
+      current_medicines: profile.currentMedicines || '',
+      emergency_contact: profile.emergencyContact || ''
+    };
+
+    if (userId) {
+      payload.user_id = userId;
+    }
+
+    // Try insert with payload
+    let { error } = await client.from('patient_profiles').insert([payload]);
+
+    if (error && error.message.includes('user_id')) {
+      // If user_id column doesn't match or fails, try without user_id
+      delete payload.user_id;
+      const retry = await client.from('patient_profiles').insert([payload]);
+      error = retry.error;
+    }
 
     if (error) {
-      console.warn('Supabase profile error:', error.message);
+      console.error('❌ Supabase patient_profiles Insert Error:', error.message);
       return false;
     }
+
+    console.log('✅ Patient Profile inserted successfully into Supabase!');
     return true;
-  } catch (e) {
-    console.warn('Supabase profile request failed:', e);
+  } catch (e: any) {
+    console.error('❌ Supabase profile request exception:', e?.message || e);
     return false;
   }
 }
