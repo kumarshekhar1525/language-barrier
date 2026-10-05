@@ -1,0 +1,6 @@
+{
+  "name": "Hear2Heal",
+  "description": "Hear2Heal - Offline Medical Translation Assistant - Clinical translation, symptom assessment, emergency triage, and prescription translation system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
